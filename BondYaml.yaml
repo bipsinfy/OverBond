@@ -1,0 +1,19 @@
+
+FROM microsoft/dotnet:2.1-runtime AS base
+WORKDIR /submission
+
+FROM microsoft/dotnet:2.1-sdk AS build
+WORKDIR /src
+COPY sde-test/sde-test/BondYield/ConsoleApp1/YieldCalculator.csproj YieldCalculator/
+RUN dotnet restore thetime/thetime.csproj
+COPY . .
+WORKDIR sde-test/sde-test/BondYield/ConsoleApp1/
+RUN dotnet build YieldCalculator.csproj -c Release -o /app
+
+FROM build AS publish
+RUN dotnet publish YieldCalculator.csproj -c Release -o /app
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app .
+ENTRYPOINT ["dotnet", "YieldCalculator.dll"]
